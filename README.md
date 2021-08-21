@@ -2,10 +2,9 @@
    <img alt="Awesome Flutter" src="https://img.shields.io/badge/Awesome-Flutter-blue.svg?longCache=true&style=flat-square"/>
 </a> <a href="https://pub.dartlang.org/packages/date_range_picker"><img alt="pub version" src="https://img.shields.io/pub/v/date_range_picker.svg?style=flat-square"></a>
 
-# [Deprecated] Date Range Picker
+# Date Range Picker
 
-Currently Flutter has supported date range picker, so I think my mission is done. Thanks for using my lib.
-Link: https://api.flutter.dev/flutter/material/showDateRangePicker.html
+
 
 ## Demo
 
