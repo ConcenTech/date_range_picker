@@ -58,10 +58,7 @@ class _DatePickerHeader extends StatelessWidget {
     required this.mode,
     required this.onModeChanged,
     required this.orientation,
-  })  : assert(selectedFirstDate != null),
-        assert(mode != null),
-        assert(orientation != null),
-        super(key: key);
+  }) : super(key: key);
 
   final DateTime selectedFirstDate;
   final DateTime? selectedLastDate;
@@ -93,9 +90,9 @@ class _DatePickerHeader extends StatelessWidget {
         break;
     }
     final TextStyle dayStyle =
-        headerTextTheme.display1!.copyWith(color: dayColor, height: 1.4);
+        headerTextTheme.subtitle2!.copyWith(color: dayColor, height: 1.4);
     final TextStyle yearStyle =
-        headerTextTheme.subhead!.copyWith(color: yearColor, height: 1.4);
+        headerTextTheme.subtitle2!.copyWith(color: yearColor, height: 1.4);
 
     Color? backgroundColor;
     switch (themeData.brightness) {
@@ -284,11 +281,7 @@ class DayPicker extends StatelessWidget {
     required this.lastDate,
     required this.displayedMonth,
     this.selectableDayPredicate,
-  })  : assert(selectedFirstDate != null),
-        assert(currentDate != null),
-        assert(onChanged != null),
-        assert(displayedMonth != null),
-        assert(!firstDate.isAfter(lastDate)),
+  })  : assert(!firstDate.isAfter(lastDate)),
         assert(!selectedFirstDate.isBefore(firstDate) &&
             (selectedLastDate == null || !selectedLastDate.isAfter(lastDate))),
         assert(selectedLastDate == null ||
@@ -452,7 +445,7 @@ class DayPicker extends StatelessWidget {
             (selectableDayPredicate != null &&
                 !selectableDayPredicate!(dayToBuild));
         BoxDecoration? decoration;
-        TextStyle? itemStyle = themeData.textTheme.body1;
+        TextStyle? itemStyle = themeData.textTheme.bodyText2;
         final bool isSelectedFirstDay = selectedFirstDate.year == year &&
             selectedFirstDate.month == month &&
             selectedFirstDate.day == day;
@@ -467,12 +460,12 @@ class DayPicker extends StatelessWidget {
             : null;
         if (isSelectedFirstDay &&
             (isSelectedLastDay == null || isSelectedLastDay)) {
-          itemStyle = themeData.accentTextTheme.body2;
+          itemStyle = themeData.accentTextTheme.bodyText2;
           decoration = new BoxDecoration(
               color: themeData.accentColor, shape: BoxShape.circle);
         } else if (isSelectedFirstDay) {
           // The selected day gets a circle background highlight, and a contrasting text color.
-          itemStyle = themeData.accentTextTheme.body2;
+          itemStyle = themeData.accentTextTheme.bodyText2;
           decoration = new BoxDecoration(
               color: themeData.accentColor,
               borderRadius: BorderRadius.only(
@@ -480,7 +473,7 @@ class DayPicker extends StatelessWidget {
                 bottomLeft: new Radius.circular(50.0),
               ));
         } else if (isSelectedLastDay != null && isSelectedLastDay) {
-          itemStyle = themeData.accentTextTheme.body2;
+          itemStyle = themeData.accentTextTheme.bodyText2;
           decoration = new BoxDecoration(
               color: themeData.accentColor,
               borderRadius: BorderRadius.only(
@@ -492,14 +485,14 @@ class DayPicker extends StatelessWidget {
               color: themeData.accentColor.withOpacity(0.1),
               shape: BoxShape.rectangle);
         } else if (disabled) {
-          itemStyle = themeData.textTheme.body1!
+          itemStyle = themeData.textTheme.bodyText1!
               .copyWith(color: themeData.disabledColor);
         } else if (currentDate.year == year &&
             currentDate.month == month &&
             currentDate.day == day) {
           // The current day gets a different text color.
-          itemStyle =
-              themeData.textTheme.body2!.copyWith(color: themeData.accentColor);
+          itemStyle = themeData.textTheme.bodyText2!
+              .copyWith(color: themeData.accentColor);
         }
 
         Widget dayWidget = new Container(
@@ -561,7 +554,7 @@ class DayPicker extends StatelessWidget {
               child: new ExcludeSemantics(
                 child: new Text(
                   localizations.formatMonthYear(displayedMonth),
-                  style: themeData.textTheme.subhead,
+                  style: themeData.textTheme.bodyText2,
                 ),
               ),
             ),
@@ -604,9 +597,7 @@ class MonthPicker extends StatefulWidget {
     required this.firstDate,
     required this.lastDate,
     this.selectableDayPredicate,
-  })  : assert(selectedFirstDate != null),
-        assert(onChanged != null),
-        assert(!firstDate.isAfter(lastDate)),
+  })  : assert(!firstDate.isAfter(lastDate)),
         assert(!selectedFirstDate.isBefore(firstDate) &&
             (selectedLastDate == null || !selectedLastDate.isAfter(lastDate))),
         assert(selectedLastDate == null ||
@@ -741,8 +732,8 @@ class _MonthPickerState extends State<MonthPicker>
     if (!_isDisplayingLastMonth) {
       SemanticsService.announce(
           localizations.formatMonthYear(_nextMonthDate), textDirection);
-      _dayPickerController!.nextPage(
-          duration: _kMonthScrollDuration, curve: Curves.ease);
+      _dayPickerController!
+          .nextPage(duration: _kMonthScrollDuration, curve: Curves.ease);
     }
   }
 
@@ -750,8 +741,8 @@ class _MonthPickerState extends State<MonthPicker>
     if (!_isDisplayingFirstMonth) {
       SemanticsService.announce(
           localizations.formatMonthYear(_previousMonthDate), textDirection);
-      _dayPickerController!.previousPage(
-          duration: _kMonthScrollDuration, curve: Curves.ease);
+      _dayPickerController!
+          .previousPage(duration: _kMonthScrollDuration, curve: Curves.ease);
     }
   }
 
@@ -800,9 +791,7 @@ class _MonthPickerState extends State<MonthPicker>
                   return false;
                 },
                 child: new PageView.builder(
-                  key: new ValueKey<DateTime?>(widget.selectedFirstDate == null
-                      ? widget.selectedFirstDate
-                      : widget.selectedLastDate),
+                  key: new ValueKey<DateTime?>(widget.selectedFirstDate),
                   controller: _dayPickerController,
                   scrollDirection: Axis.horizontal,
                   itemCount: _monthDelta(widget.firstDate, widget.lastDate) + 1,
@@ -941,7 +930,7 @@ class _YearPickerState extends State<YearPicker> {
   Widget build(BuildContext context) {
     assert(debugCheckHasMaterial(context));
     final ThemeData themeData = Theme.of(context);
-    final TextStyle? style = themeData.textTheme.body1;
+    final TextStyle? style = themeData.textTheme.bodyText1;
     return new ListView.builder(
       controller: scrollController,
       itemExtent: _itemExtent,
@@ -952,7 +941,7 @@ class _YearPickerState extends State<YearPicker> {
             (widget.selectedLastDate != null &&
                 year == widget.selectedLastDate!.year);
         final TextStyle? itemStyle = isSelected
-            ? themeData.textTheme.headline!
+            ? themeData.textTheme.bodyText1!
                 .copyWith(color: themeData.accentColor)
             : style;
         return new InkWell(
@@ -1051,7 +1040,7 @@ class _DatePickerDialogState extends State<_DatePickerDialog> {
       case TargetPlatform.fuchsia:
         HapticFeedback.vibrate();
         break;
-      case TargetPlatform.iOS:
+      default:
         break;
     }
   }
@@ -1102,11 +1091,11 @@ class _DatePickerDialogState extends State<_DatePickerDialog> {
   }
 
   void _handleOk() {
-    List<DateTime?> result = [];
+    List<DateTime> result = [];
     if (_selectedFirstDate != null) {
-      result.add(_selectedFirstDate);
+      result.add(_selectedFirstDate!);
       if (_selectedLastDate != null) {
-        result.add(_selectedLastDate);
+        result.add(_selectedLastDate!);
       }
     }
     Navigator.pop(context, result);
@@ -1114,7 +1103,7 @@ class _DatePickerDialogState extends State<_DatePickerDialog> {
 
   Widget? _buildPicker() {
     assert(_mode != null);
-    switch (_mode) {
+    switch (_mode!) {
       case DatePickerMode.day:
         return new MonthPicker(
           key: _pickerKey,
@@ -1126,7 +1115,7 @@ class _DatePickerDialogState extends State<_DatePickerDialog> {
           selectableDayPredicate: widget.selectableDayPredicate,
         );
       case DatePickerMode.year:
-        return  YearPicker(
+        return YearPicker(
           key: _pickerKey,
           selectedFirstDate: _selectedFirstDate!,
           selectedLastDate: _selectedLastDate,
@@ -1135,7 +1124,6 @@ class _DatePickerDialogState extends State<_DatePickerDialog> {
           lastDate: widget.lastDate!,
         );
     }
-    return null;
   }
 
   @override
@@ -1151,11 +1139,11 @@ class _DatePickerDialogState extends State<_DatePickerDialog> {
       data: ButtonBarThemeData(),
       child: new ButtonBar(
         children: <Widget>[
-          new FlatButton(
+          new TextButton(
             child: new Text(localizations.cancelButtonLabel),
             onPressed: _handleCancel,
           ),
-          new FlatButton(
+          new TextButton(
             child: new Text(localizations.okButtonLabel),
             onPressed: _handleOk,
           ),
@@ -1164,7 +1152,6 @@ class _DatePickerDialogState extends State<_DatePickerDialog> {
     );
     final Dialog dialog = new Dialog(child: new OrientationBuilder(
         builder: (BuildContext context, Orientation orientation) {
-      assert(orientation != null);
       final Widget header = new _DatePickerHeader(
         selectedFirstDate: _selectedFirstDate!,
         selectedLastDate: _selectedLastDate,
@@ -1286,8 +1273,6 @@ Future<List<DateTime>?> showDatePicker({
           selectableDayPredicate(initialFirstDate) ||
           selectableDayPredicate(initialLastDate),
       'Provided initialDate must satisfy provided selectableDayPredicate');
-  assert(
-      initialDatePickerMode != null, 'initialDatePickerMode must not be null');
 
   Widget child = new _DatePickerDialog(
     initialFirstDate: initialFirstDate,
