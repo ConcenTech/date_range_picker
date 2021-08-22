@@ -32,9 +32,6 @@ enum DatePickerMode {
   year,
 }
 
-const double _kDatePickerHeaderPortraitHeight = 72.0;
-const double _kDatePickerHeaderLandscapeWidth = 168.0;
-
 const Duration _kMonthScrollDuration = Duration(milliseconds: 200);
 const double _kDayPickerRowHeight = 42.0;
 const int _kMaxDayPickerRowCount = 6; // A 31 day month that starts on Saturday.
@@ -49,184 +46,193 @@ const double _kDialogActionBarHeight = 52.0;
 const double _kDatePickerLandscapeHeight =
     _kMaxDayPickerHeight + _kDialogActionBarHeight;
 
-// Shows the selected date in large font and toggles between year and day mode
 class _DatePickerHeader extends StatelessWidget {
+  /// Creates a header for use in a date picker dialog.
   const _DatePickerHeader({
     Key? key,
-    required this.selectedFirstDate,
-    this.selectedLastDate,
-    required this.mode,
-    required this.onModeChanged,
+    required this.helpText,
+    required this.fromDateHint,
+    required this.fromDateText,
+    required this.toDateHint,
+    required this.toDateText,
+    this.titleSemanticsLabel,
+    required this.titleStyle,
     required this.orientation,
+    this.isShort = false,
+    this.entryModeButton,
   }) : super(key: key);
 
-  final DateTime selectedFirstDate;
-  final DateTime? selectedLastDate;
-  final DatePickerMode mode;
-  final ValueChanged<DatePickerMode> onModeChanged;
+  static const double _datePickerHeaderLandscapeWidth = 152.0;
+  static const double _datePickerHeaderPortraitHeight = 120.0;
+  static const double _headerPaddingLandscape = 16.0;
+
+  /// The text that is displayed at the top of the header.
+  ///
+  /// This is used to indicate to the user what they are selecting a date for.
+  final String helpText;
+
+  final String fromDateHint;
+  final String? fromDateText;
+
+  final String toDateHint;
+  final String? toDateText;
+
+  /// The semantic label associated with the [titleText].
+  final String? titleSemanticsLabel;
+
+  /// The [TextStyle] that the [fromDateText] and [toDateText] is displayed with
+  final TextStyle? titleStyle;
+
+  /// The orientation is used to decide how to layout its children.
   final Orientation orientation;
 
-  void _handleChangeMode(DatePickerMode value) {
-    if (value != mode) onModeChanged(value);
-  }
+  /// Indicates the header is being displayed in a shorter/narrower context.
+  ///
+  /// This will be used to tighten up the space between the help text and date
+  /// text if `true`. Additionally, it will use a smaller typography style if
+  /// `true`.
+  ///
+  /// This is necessary for displaying the manual input mode in
+  /// landscape orientation, in order to account for the keyboard height.
+  final bool isShort;
 
-  @override
-  Widget build(BuildContext context) {
-    final MaterialLocalizations localizations =
-        MaterialLocalizations.of(context);
-    final ThemeData themeData = Theme.of(context);
-    final TextTheme headerTextTheme = themeData.primaryTextTheme;
-    Color? dayColor;
-    Color? yearColor;
-    switch (themeData.primaryColorBrightness) {
-      case Brightness.light:
-        dayColor = mode == DatePickerMode.day ? Colors.black87 : Colors.black54;
-        yearColor =
-            mode == DatePickerMode.year ? Colors.black87 : Colors.black54;
-        break;
-      case Brightness.dark:
-        dayColor = mode == DatePickerMode.day ? Colors.white : Colors.white70;
-        yearColor = mode == DatePickerMode.year ? Colors.white : Colors.white70;
-        break;
-    }
-    final TextStyle dayStyle =
-        headerTextTheme.subtitle2!.copyWith(color: dayColor, height: 1.4);
-    final TextStyle yearStyle =
-        headerTextTheme.subtitle2!.copyWith(color: yearColor, height: 1.4);
-
-    Color? backgroundColor;
-    switch (themeData.brightness) {
-      case Brightness.light:
-        backgroundColor = themeData.primaryColor;
-        break;
-      case Brightness.dark:
-        backgroundColor = themeData.backgroundColor;
-        break;
-    }
-
-    double? width;
-    double? height;
-    EdgeInsets? padding;
-    switch (orientation) {
-      case Orientation.portrait:
-        width = _kMonthPickerPortraitWidth;
-        height = _kDatePickerHeaderPortraitHeight;
-        padding = const EdgeInsets.symmetric(horizontal: 8.0);
-        break;
-      case Orientation.landscape:
-        height = _kDatePickerLandscapeHeight;
-        width = _kDatePickerHeaderLandscapeWidth;
-        padding = const EdgeInsets.all(8.0);
-        break;
-    }
-    Widget renderYearButton(date) {
-      return new IgnorePointer(
-        ignoring: mode != DatePickerMode.day,
-        ignoringSemantics: false,
-        child: new _DateHeaderButton(
-          color: backgroundColor,
-          onTap: Feedback.wrapForTap(
-              () => _handleChangeMode(DatePickerMode.year), context),
-          child: new Semantics(
-              selected: mode == DatePickerMode.year,
-              child:
-                  new Text(localizations.formatYear(date), style: yearStyle)),
-        ),
-      );
-    }
-
-    Widget renderDayButton(date) {
-      return new IgnorePointer(
-        ignoring: mode == DatePickerMode.day,
-        ignoringSemantics: false,
-        child: new _DateHeaderButton(
-          color: backgroundColor,
-          onTap: Feedback.wrapForTap(
-              () => _handleChangeMode(DatePickerMode.day), context),
-          child: new Semantics(
-              selected: mode == DatePickerMode.day,
-              child: new Text(
-                localizations.formatMediumDate(date),
-                style: dayStyle,
-                textScaleFactor: 0.5,
-              )),
-        ),
-      );
-    }
-
-    final Widget startHeader = new Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        renderYearButton(selectedFirstDate),
-        renderDayButton(selectedFirstDate),
-      ],
-    );
-    final Widget endHeader = selectedLastDate != null
-        ? new Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: <Widget>[
-              renderYearButton(selectedLastDate),
-              renderDayButton(selectedLastDate),
-            ],
-          )
-        : new Container();
-
-    return new Container(
-      width: width,
-      height: height,
-      padding: padding,
-      color: backgroundColor,
-      child: orientation == Orientation.portrait
-          ? new Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [startHeader, endHeader],
-            )
-          : new Column(
-              children: [
-                new Container(
-                  width: width,
-                  child: startHeader,
-                ),
-                new Container(
-                  width: width,
-                  child: endHeader,
-                ),
-              ],
-            ),
-    );
-  }
-}
-
-class _DateHeaderButton extends StatelessWidget {
-  const _DateHeaderButton({
-    Key? key,
-    this.onTap,
-    this.color,
-    this.child,
-  }) : super(key: key);
-
-  final VoidCallback? onTap;
-  final Color? color;
-  final Widget? child;
+  final Widget? entryModeButton;
 
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final ColorScheme colorScheme = theme.colorScheme;
+    final TextTheme textTheme = theme.textTheme;
+    final MaterialLocalizations localizations =
+        MaterialLocalizations.of(context);
+    // The header should use the primary color in light themes and surface color in dark
+    final bool isDark = colorScheme.brightness == Brightness.dark;
+    final Color primarySurfaceColor =
+        isDark ? colorScheme.surface : colorScheme.primary;
+    final Color onPrimarySurfaceColor =
+        isDark ? colorScheme.onSurface : colorScheme.onPrimary;
 
-    return new Material(
-      type: MaterialType.button,
-      color: color,
-      child: new InkWell(
-        borderRadius: kMaterialEdges[MaterialType.button],
-        highlightColor: theme.highlightColor,
-        splashColor: theme.splashColor,
-        onTap: onTap,
-        child: new Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: child,
-        ),
-      ),
+    final TextStyle? helpStyle = textTheme.overline?.copyWith(
+      color: onPrimarySurfaceColor,
     );
+
+    final Text help = Text(
+      helpText,
+      style: helpStyle,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+    final fromDate = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          fromDateHint,
+          style: helpStyle,
+          maxLines: 1,
+          semanticsLabel: localizations.dateRangeEndLabel,
+        ),
+        if (fromDateText != null)
+          Text(
+            fromDateText!,
+            semanticsLabel: titleSemanticsLabel ?? fromDateText,
+            style: titleStyle,
+            maxLines: orientation == Orientation.portrait ? 1 : 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+      ],
+    );
+    final toDate = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          toDateHint,
+          style: helpStyle,
+          maxLines: 1,
+          semanticsLabel: localizations.dateRangeEndLabel,
+        ),
+        if (toDateText != null)
+          Text(
+            toDateText!,
+            semanticsLabel: titleSemanticsLabel ?? toDateText,
+            style: titleStyle,
+            maxLines: orientation == Orientation.portrait ? 1 : 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+      ],
+    );
+
+    switch (orientation) {
+      case Orientation.portrait:
+        return SizedBox(
+          height: _datePickerHeaderPortraitHeight,
+          child: Material(
+            color: primarySurfaceColor,
+            child: Padding(
+              padding: const EdgeInsetsDirectional.only(
+                start: 24,
+                end: 12,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  const SizedBox(height: 16),
+                  help,
+                  const Flexible(child: SizedBox(height: 18)),
+                  fromDate,
+                  const Flexible(child: SizedBox(height: 18)),
+                  Row(
+                    children: <Widget>[
+                      Expanded(child: toDate),
+                      if (entryModeButton != null) entryModeButton!,
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      case Orientation.landscape:
+        return SizedBox(
+          width: _datePickerHeaderLandscapeWidth,
+          child: Material(
+            color: primarySurfaceColor,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: _headerPaddingLandscape,
+                  ),
+                  child: help,
+                ),
+                SizedBox(height: isShort ? 16 : 56),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: _headerPaddingLandscape,
+                    ),
+                    child: fromDate,
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: _headerPaddingLandscape,
+                    ),
+                    child: toDate,
+                  ),
+                ),
+                if (entryModeButton != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: entryModeButton,
+                  ),
+              ],
+            ),
+          ),
+        );
+    }
   }
 }
 
@@ -982,6 +988,7 @@ class _DatePickerDialog extends StatefulWidget {
     this.lastDate,
     this.selectableDayPredicate,
     this.initialDatePickerMode,
+    this.initialEntryMode = DatePickerEntryMode.calendar,
   }) : super(key: key);
 
   final DateTime? initialFirstDate;
@@ -991,11 +998,19 @@ class _DatePickerDialog extends StatefulWidget {
   final SelectableDayPredicate? selectableDayPredicate;
   final DatePickerMode? initialDatePickerMode;
 
+  /// The initial mode of date entry method for the date picker dialog.
+  ///
+  /// See [DatePickerEntryMode] for more details on the different data entry
+  /// modes available.
+  final DatePickerEntryMode initialEntryMode;
+
   @override
   _DatePickerDialogState createState() => new _DatePickerDialogState();
 }
 
 class _DatePickerDialogState extends State<_DatePickerDialog> {
+  DatePickerEntryMode? _entryMode;
+
   @override
   void initState() {
     super.initState();
@@ -1045,24 +1060,19 @@ class _DatePickerDialogState extends State<_DatePickerDialog> {
     }
   }
 
-  void _handleModeChanged(DatePickerMode mode) {
-    _vibrate();
+  void _handleEntryModeToggle() {
     setState(() {
-      _mode = mode;
-      if (_mode == DatePickerMode.day) {
-        SemanticsService.announce(
-            localizations.formatMonthYear(_selectedFirstDate!), textDirection);
-        if (_selectedLastDate != null) {
-          SemanticsService.announce(
-              localizations.formatMonthYear(_selectedLastDate!), textDirection);
-        }
-      } else {
-        SemanticsService.announce(
-            localizations.formatYear(_selectedFirstDate!), textDirection);
-        if (_selectedLastDate != null) {
-          SemanticsService.announce(
-              localizations.formatYear(_selectedLastDate!), textDirection);
-        }
+      switch (_entryMode ?? widget.initialEntryMode) {
+        case DatePickerEntryMode.calendar:
+          _entryMode = DatePickerEntryMode.input;
+          break;
+        case DatePickerEntryMode.input:
+          _entryMode = DatePickerEntryMode.calendar;
+          break;
+        case DatePickerEntryMode.calendarOnly:
+        case DatePickerEntryMode.inputOnly:
+          assert(false, 'Can not change entry mode from _entryMode');
+          break;
       }
     });
   }
@@ -1129,12 +1139,45 @@ class _DatePickerDialogState extends State<_DatePickerDialog> {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final TextTheme textTheme = theme.textTheme;
+    final ColorScheme colorScheme = theme.colorScheme;
+
+    final Color onPrimarySurface = colorScheme.brightness == Brightness.light
+        ? colorScheme.onPrimary
+        : colorScheme.onSurface;
     final Widget picker = new Flexible(
       child: new SizedBox(
         height: _kMaxDayPickerHeight,
         child: _buildPicker(),
       ),
     );
+
+    final Widget? entryModeButton;
+    switch (_entryMode ?? widget.initialEntryMode) {
+      case DatePickerEntryMode.calendar:
+        entryModeButton = IconButton(
+          icon: const Icon(Icons.edit),
+          color: onPrimarySurface,
+          tooltip: localizations.inputDateModeButtonLabel,
+          onPressed: _handleEntryModeToggle,
+        );
+        break;
+
+      case DatePickerEntryMode.calendarOnly:
+      case DatePickerEntryMode.inputOnly:
+        entryModeButton = null;
+        break;
+
+      case DatePickerEntryMode.input:
+        entryModeButton = IconButton(
+          icon: const Icon(Icons.calendar_today),
+          color: onPrimarySurface,
+          tooltip: localizations.calendarModeButtonLabel,
+          onPressed: _handleEntryModeToggle,
+        );
+        break;
+    }
+
     final Widget actions = new ButtonBarTheme(
       data: ButtonBarThemeData(),
       child: new ButtonBar(
@@ -1150,13 +1193,21 @@ class _DatePickerDialogState extends State<_DatePickerDialog> {
         ],
       ),
     );
+
     final Dialog dialog = new Dialog(child: new OrientationBuilder(
         builder: (BuildContext context, Orientation orientation) {
       final Widget header = new _DatePickerHeader(
-        selectedFirstDate: _selectedFirstDate!,
-        selectedLastDate: _selectedLastDate,
-        mode: _mode!,
-        onModeChanged: _handleModeChanged,
+        entryModeButton: entryModeButton,
+        helpText: localizations.datePickerHelpText,
+        fromDateHint: localizations.dateRangeStartLabel,
+        toDateHint: localizations.dateRangeEndLabel,
+        titleStyle: textTheme.headline6?.copyWith(color: onPrimarySurface),
+        fromDateText: _selectedFirstDate != null
+            ? localizations.formatMediumDate(_selectedFirstDate!)
+            : null,
+        toDateText: _selectedLastDate != null
+            ? localizations.formatMediumDate(_selectedLastDate!)
+            : null,
         orientation: orientation,
       );
       switch (orientation) {
